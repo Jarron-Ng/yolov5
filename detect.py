@@ -1,9 +1,13 @@
-# YOLOv5 🚀 by Ultralytics, AGPL-3.0 license
+# YOLOv5 🚀 by Ultralytics, GPL-3.0 license
 """
 Run YOLOv5 detection inference on images, videos, directories, globs, YouTube, webcam, streams, etc.
 
 Usage - sources:
-    $ python detect.py --weights yolov5s.pt --source 0                               # webcam
+python3 detect.py --weights ./runs/train/exp10/weights/best.pt --source runway.mp4 --view-img --nosave
+python3 detect.py --weights ./runs/train/exp10/weights/best.onnx --source 'rtsp://root:Pass@123@192.168.1.91/axis-media/media.amp' --view-img --nosave
+python3 detect.py --weights ./runs/train/exp10/weights/best.pt --source 'rtsp://root:Pass@123@192.168.1.91/axis-media/media.amp' --view-img --nosave
+
+    $ python3 detect.py --weights yolov5s.pt --source 0                               # webcam
                                                      img.jpg                         # image
                                                      vid.mp4                         # video
                                                      screen                          # screenshot
@@ -36,7 +40,9 @@ from pathlib import Path
 
 import torch
 
+# home/skt/.../yolov5/detect.py
 FILE = Path(__file__).resolve()
+# home/skt/.../yolov5
 ROOT = FILE.parents[0]  # YOLOv5 root directory
 if str(ROOT) not in sys.path:
     sys.path.append(str(ROOT))  # add ROOT to PATH
@@ -101,6 +107,7 @@ def run(
 
     # Dataloader
     bs = 1  # batch_size
+    # for video streams
     if webcam:
         view_img = check_imshow(warn=True)
         dataset = LoadStreams(source, img_size=imgsz, stride=stride, auto=pt, vid_stride=vid_stride)
@@ -114,6 +121,8 @@ def run(
     # Run inference
     model.warmup(imgsz=(1 if pt or model.triton else bs, 3, *imgsz))  # warmup
     seen, windows, dt = 0, [], (Profile(), Profile(), Profile())
+
+    # dataset is a LoadStreams object in the case of video streams
     for path, im, im0s, vid_cap, s in dataset:
         with dt[0]:
             im = torch.from_numpy(im).to(model.device)
@@ -252,7 +261,7 @@ def parse_opt():
 
 
 def main(opt):
-    check_requirements(ROOT / 'requirements.txt', exclude=('tensorboard', 'thop'))
+    check_requirements(exclude=('tensorboard', 'thop'))
     run(**vars(opt))
 
 
